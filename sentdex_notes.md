@@ -13,4 +13,14 @@ func add(x, y float64) float64 {
 }
 
 var num1, num2 float64 = 5.6, 9.5
+// short circuit declaration
+```
+
+inorder to return multiple elements from
+a function
+
+``` go
+func return_multiple_items(a, b string) (string, string) {
+    return a, b
+}
 ```
