@@ -24,3 +24,20 @@ func return_multiple_items(a, b string) (string, string) {
     return a, b
 }
 ```
+
+# pointers in go
+```go
+func main() {
+    x := 15
+    a := &x // memory address
+
+    fmt.Println(a)
+
+    // print the value of x
+    fmt.Println(*a)
+
+    *a = 5
+    fmt.Println(x)
+    fmt.Println(a)
+}
+```
