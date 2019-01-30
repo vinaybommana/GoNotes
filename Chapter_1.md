@@ -231,6 +231,9 @@ type geometry interface {
     perim() float64
 }
 ```
+
+[jordan orelli's blogpost](http://jordanorelli.com/post/32665860244/how-to-use-interfaces-in-go)
+
 An interface is two things: it is a set of methods,
 but it is also a type.
 
@@ -307,4 +310,4 @@ func DoSomething(v interface{}) {
 ```
 will accept any parameter whatsoever.
 
-Here’s where it gets confusing: inside of the DoSomething function, what is v’s type? Beginner gophers are led to believe that “v is of any type”, but that is wrong. v is not of any type; it is of `interface{}` type. Wait, what? When passing a value into the DoSomething function, the Go runtime will perform a type conversion (if necessary), and convert the value to an interface{} value. All values have exactly one type at runtime, and v’s one static type is interface{}.
+Here’s where it gets confusing: inside of the `DoSomething` function, what is v’s type? Beginner gophers are led to believe that “v is of any type”, but that is wrong. v is not of any type; it is of `interface{}` type. Wait, what? When passing a value into the DoSomething function, the Go runtime will perform a type conversion (if necessary), and convert the value to an interface{} value. All values have exactly one type at runtime, and v’s one static type is `interface{}`.
