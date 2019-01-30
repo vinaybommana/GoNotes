@@ -38,6 +38,13 @@ func (c *car) newTopSpeed(newSpeed float64) {
 	c.topSpeedKmh = newSpeed
 }
 
+// this serves the same purpose
+// but not good
+func newerTopSpeed(c car, speed float64) car {
+	c.topSpeedKmh = speed
+	return c
+}
+
 func main() {
 	myCar := car{
 		gasPedal:      22341,
