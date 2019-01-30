@@ -106,3 +106,205 @@ The `Scan` function returns `true` if there is a line and `false`
 when there is no more input.
 
 
+### Difference between quoted string and a string in go
+
+In quotes "" you need to esacpe new lines, tabs and other characters that
+do not need to be escaped in backticks \`\`.
+If you put a line break in a backtick string, it is interpreted as a `'\n'`
+
+## String Literals
+A string literal represents a `string constant` obtained from concatenating a
+sequence of characters. There are two forms:
+    1. raw string literals
+    2. interpreted string literals
+
+Raw string literals are character sequences between back quotes, as in
+\``foo`\`. Within the quotes, any character may appear except back quote.
+
+The value of a raw string literal is the string composed of the uninterpreted
+(implicitly UTF-8 encoded.) characters between the quotes;
+in particular, backslashes have no special meaning and the string may contain
+new lines. Carriage return characters (`'\r'`) inside raw string literals are
+discarded from the raw string value.
+
+
+Interpreted string literals are character sequences between double quotes,
+as in `"bar"`. Within the quotes, any character may appear except newline and unescaped
+double quote. The text between the quotes forms the value of the literal, with backslash escapes interpreted as they are in `rune literals`.
+
+```go
+string_lit             = raw_string_lit | interpreted_string_lit .
+raw_string_lit         = "`" { unicode_char | newline } "`" .
+interpreted_string_lit = `"` { unicode_value | byte_value } `"` .
+```
+
+
+```go
+`abc`                // same as "abc"
+`\n
+\n`                  // same as "\\n\n\\n"
+"\n"
+"\""                 // same as `"`
+"Hello, world!\n"
+"日本語"
+"\u65e5本\U00008a9e"
+"\xff\u00FF"
+"\uD800"             // illegal: surrogate half
+"\U00110000"         // illegal: invalid Unicode code point
+```
+
+
+## Maps in Go
+Go provides a built-in map type that implements
+as hash table.
+
+### Declaration and initialization
+A Go map type looks like this:
+```go
+map[KeyType]ValueType
+```
+
+where `KeyType` may be anytype that is *comparable* and `ValueType` may be
+any type at all, including another map.
+
+```go
+var m map[string]int
+```
+
+Map types are reference types, like pointers or slices, and so the values of
+`m` above is nil; it doesn't point to an initialized map. A `nil` map behaves like
+an empty map when reading, but attempts to write to `nil` map will cause a runtime
+panic; don't do that. To initialize a map, use the built in `make` function:
+
+
+```go
+m = make(map[string]int)
+```
+
+The `make` function allocates and initializes a hash map data structure and
+returns a map value that points to it.
+The specifics of that data structure are an implementation detail of the runtime
+and are not specified by the language itself.
+
+
+```go
+for key, value := range m {
+    fmt.Println("Key:", key, "Value:", value)
+}
+```
+
+### Exploiting zero values
+It can be convenient that a map retrieval yields a zero value when the key is not present.
+
+For instance, a map of boolean values can be used as a set-like data structure
+(recall that the zero value for the boolean type is `false`).
+This example traverses a linked list of `Nodes` and prints their values.
+It uses a map of `Node` pointers to detect cycles in the list.
+
+```go
+type Node struct {
+    Next *Node
+    Value interface{} // *Interfaces* are named collections of method signatures.
+}
+var first *Node
+
+visited := make(map[*Node]bool)
+for n := first; n != nil; n = n.Next {
+    if visited[n] {
+        fmt.Println("cycle detected")
+        break
+    }
+    visited[n] = true
+    fmt.Println(n.Value)
+}
+```
+
+
+
+## Interfaces
+
+*Interfaces* are named collections of method signatures.
+
+```go
+type geometry interface {
+    area() float64
+    perim() float64
+}
+```
+An interface is two things: it is a set of methods,
+but it is also a type.
+
+Typically, we're introduced to interfaces with some contrived example.
+Let's go with the contrived example of writing some application where
+you're defining `Animal` datatypes, because that's a totally realistic
+situation that happens all the time.
+
+The `Animal` type will be an interface, and we'll define an `Animal` as
+being *anything that can speak*. This is a core concept in Go's type system;
+instead of designing our abstractions in terms of what kind of data our types
+can hold, we design our abstractions in terms of what actions our types can execute.
+
+we start by defining our `Animal` interface:
+
+```go
+type Animal interface {
+    Speak() string
+}
+```
+
+pretty simple: we define an `Animal` as being any type that has a method named `Speak`. The Speak method takes no arguments and returns a string. Any type that defines this method is said to satisfy the `Animal` interface. There is no `implements` keyword in Go; whether or not a type satisfies an interface is determined automatically.
+
+
+```go
+type Dog struct {
+}
+
+func (d Dog) Speak() string {
+    return "Woof!"
+}
+
+type Cat struct {
+}
+
+func (c Cat) Speak() string {
+    return "Meow!"
+}
+
+type Llama struct {
+}
+
+func (l Llama) Speak() string {
+    return "?????"
+}
+
+type JavaProgrammer struct {
+}
+
+func (j JavaProgrammer) Speak() string {
+    return "Design patterns!"
+}
+```
+
+We now have four different types of animals: A dog, a cat, a llama, and a Java programmer. In our main() function, we can create a slice of Animals, and put one of each type into that slice, and see what each animal says. Let’s do that now:
+
+```go
+func main() {
+    animals := []Animal{Dog{}, Cat{}, Llama{}, JavaProgrammer{}}
+    for _, animal := range animals {
+        fmt.Println(animal.Speak())
+    }
+}
+```
+
+### The `interface{}` type
+
+The `interface{}` type, the empty interface, is the source of much confusion. The `interface{}` type is the interface that has no methods. Since there is no implements keyword, all types implement at least zero methods, and satisfying an interface is done automatically, all types satisfy the empty interface. That means that if you write a function that takes an interface{} value as a parameter, you can supply that function with any value. So, this function:
+
+```go
+func DoSomething(v interface{}) {
+   // ...
+}
+```
+will accept any parameter whatsoever.
+
+Here’s where it gets confusing: inside of the DoSomething function, what is v’s type? Beginner gophers are led to believe that “v is of any type”, but that is wrong. v is not of any type; it is of `interface{}` type. Wait, what? When passing a value into the DoSomething function, the Go runtime will perform a type conversion (if necessary), and convert the value to an interface{} value. All values have exactly one type at runtime, and v’s one static type is interface{}.
