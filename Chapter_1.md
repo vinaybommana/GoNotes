@@ -1,5 +1,3 @@
-
-
 # Chapter one
 
 Go code is organised into packages, which are similar to libraries
