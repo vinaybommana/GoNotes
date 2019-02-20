@@ -110,3 +110,7 @@ for {
 
 The loop is infinite, though loops of this form may be terminated in
 some other way, like a ~break~ or ~return~ statement.
+
+
+- composite literals in go
+- marshal and unmarshal json in go
