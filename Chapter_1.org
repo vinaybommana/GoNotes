@@ -114,3 +114,53 @@ some other way, like a ~break~ or ~return~ statement.
 
 - composite literals in go
 - marshal and unmarshal json in go
+
+** json
+*** Encoding
+
+To encode JSON data we use the `Marshal` function.
+
+#+BEGIN_SRC go
+func Marshal(v interface{}) ([]byte, error)
+#+END_SRC
+
+we define a `struct`
+
+#+BEGIN_SRC go
+type Message struct {
+    Name string
+    Body string
+    Time int64
+}
+#+END_SRC
+
+and an instance of this `Message`
+
+#+BEGIN_SRC go
+m := Message{"Alice", "Hello", 129}
+#+END_SRC
+
+we can marshal a JSON-encoded version of m using `json.Marshal`:
+
+#+BEGIN_SRC go
+b, err := json.Marshal(m)
+#+END_SRC
+
+we get the following output:
+
+#+BEGIN_SRC go
+b == []byte(`{"Name": "Alice", "Body": "Hello", "Time": 129}`)
+#+END_SRC
+
+Only datastructures that can be represented as valid `JSON` will be encoded:
+
+- `JSON` objects only support strings as keys;
+   to encode a Go map type it must be of the form `map[string]T` (where T is any Go type supported by the json package)
+
+- Channel, complex, and function types cannot be encoded.
+
+- Cyclic data structures are not supported; they will cause Marshal to go into an infinite loop.
+
+- Pointers will be encoded as the values they point to (or 'null' if the pointer is `nil`).
+
+https://blog.golang.org/json-and-go

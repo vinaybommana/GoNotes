@@ -125,7 +125,7 @@ For types such as basic types, slices, and small structs, a value receiver is ve
 
 # looping structures
 ```go
-for i:=0;i<10;i++ {
+for i:=0; i<10; i++ {
     //body of for
 }
 ```
