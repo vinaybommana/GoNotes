@@ -42,8 +42,8 @@ The other elements are arguments that were presented to the program
 when it started execution
 
     for _, arg := range os.Args[1: ] {
-    	s += sep + arg
-    	sep = " "
+        s += sep + arg
+        sep = " "
     }
     fmt.Println(s)
 
@@ -61,7 +61,7 @@ If the amount of data involved is large, this could be costly. A simple and more
 ```
 
 func main() {
-	fmt.Println(strings.Join(os.Args[1:], " "))
+    fmt.Println(strings.Join(os.Args[1:], " "))
 }
 
 ```
@@ -76,7 +76,7 @@ There are several other ways to declare a variable in go
     var s = ""
     var s string
     var s string = ""
-	
+    
 # Finding Duplicate Lines
 
 finding duplicate lines is partly inspired from `uniq` command, which looks for adjacent duplicate lines.
@@ -84,7 +84,7 @@ The structures and packages used are models that can be easily adapted.
 
 A _map_ holds a set of key / value pairs and provides constant - time operations to store, retrieve, or test for an item in the set.
 
-	a map is like a dictionary in python ?
+    a map is like a dictionary in python ?
 
 The key may be of any type whose values can be compared with `==`, strings being the most common example;
 The value may be of any type at all. In the example, the keys are strings and the values are `ints`.
@@ -352,7 +352,7 @@ func main() {
 ```
 
 `%v`	the value in a default format
-	    when printing `struct`s, the plus flag (%+v) adds field names
+        when printing `struct`s, the plus flag (%+v) adds field names
 
 ### Streaming IO in Go
 [medium article](https://medium.com/learning-the-go-programming-language/streaming-io-in-go-d93507931185)
@@ -392,46 +392,51 @@ The next program, `fetchall`, does the same fetch of a URL’s contents as the p
 package main
 
 import (
-	"fmt"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"os"
-	"time"
+    "fmt"
+    "io"
+    "io/ioutil"
+    "net/http"
+    "os"
+    "time"
 )
 
 func main() {
-	start := time.Now()
-	ch := make(chan string)
+    start := time.Now()
+    ch := make(chan string)
 
-	for _, url := range os.Args[1:] {
-		go fetch(url, ch) // start a goroutine
-	}
+    for _, url := range os.Args[1:] {
+        go fetch(url, ch) // start a goroutine
+    }
 
-	for range os.Args[1:] {
-		fmt.Println(<-ch) // receive from channel ch
-	}
+    for range os.Args[1:] {
+        fmt.Println(<-ch) // receive from channel ch
+    }
 
-	fmt.Printf("%.2fs elapsed\n", time.Since(start).Seconds())
+    fmt.Printf("%.2fs elapsed\n", time.Since(start).Seconds())
 }
 
 func fetch(url string, ch chan<- string) {
-	start := time.Now()
-	resp, err := http.Get(url)
+    start := time.Now()
+    resp, err := http.Get(url)
 
-	if err != nil {
-		ch <- fmt.Sprint(err) // send to channel ch
-		return
-	}
+    if err != nil {
+        ch <- fmt.Sprint(err) // send to channel ch
+        return
+    }
 
-	nbytes, err := io.Copy(ioutil.Discard, resp.Body)
-	resp.Body.Close()
-	if err != nil {
-		ch <- fmt.Sprintf("While reading %s: %v", url, err)
-		return
-	}
+    nbytes, err := io.Copy(ioutil.Discard, resp.Body)
+    resp.Body.Close()
+    if err != nil {
+        ch <- fmt.Sprintf("While reading %s: %v", url, err)
+        return
+    }
 
-	secs := time.Since(start).Seconds()
-	ch <- fmt.Sprintf("%.2fs %7d %s", secs, nbytes, url)
+    secs := time.Since(start).Seconds()
+    ch <- fmt.Sprintf("%.2fs %7d %s", secs, nbytes, url)
 }
 ```
+
+[Go routines](http://talks.golang.org/2012/concurrency.slide#1)
+
+## Strings in Go
+In Go, a string is in effect a read-only slice of bytes.

@@ -179,4 +179,6 @@ https://blog.golang.org/json-and-go
 Go has inferred types, i.e., Go variables have types and they don't change their type
 
 - Generator "goroutines"
-  using =goroutines= and =channels= instead of =yield= 
+  using =goroutines= and =channels= instead of =yield=
+
+- anonymous structs 
