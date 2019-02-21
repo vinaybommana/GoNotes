@@ -164,3 +164,19 @@ Only datastructures that can be represented as valid `JSON` will be encoded:
 - Pointers will be encoded as the values they point to (or 'null' if the pointer is `nil`).
 
 https://blog.golang.org/json-and-go
+
+
+- interface segregation priciple
+
+    client code should not depend on methods that it does not use.
+
+- Decorator pattern
+
+- Open Close principle
+
+    an entity should be extended without modifying its previous source code.
+
+Go has inferred types, i.e., Go variables have types and they don't change their type
+
+- Generator "goroutines"
+  using =goroutines= and =channels= instead of =yield= 

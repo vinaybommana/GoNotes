@@ -311,3 +311,127 @@ will accept any parameter whatsoever.
 Here’s where it gets confusing: inside of the `DoSomething` function, what is v’s type? Beginner gophers are led to believe that “v is of any type”, but that is wrong. v is not of any type; it is of `interface{}` type. Wait, what? When passing a value into the DoSomething function, the Go runtime will perform a type conversion (if necessary), and convert the value to an interface{} value. All values have exactly one type at runtime, and v’s one static type is `interface{}`.
 
 [Russ Cox Blog](https://research.swtch.com/interfaces)
+
+
+## Fetching URLs
+
+Go provides a collection of packages, grouped under `net`, that make it easy to send and receive information through internet, make low-level network connections, and set up servers, for which `Go's` concurrency features are particularly useful.
+
+To illustrate the minimum necessary to retrie ve information over `HTTP`, here’s a simple program called `fetch` that fetches the content of each specified URL and prints it as uninterpreted text; it’s inspired by the invaluable utility `curl`. Obviously one would usually do more with such data, but this shows the basic idea. We will use this program frequently in the book.
+
+``` go
+package main
+
+import (
+    "fmt"
+    "io/ioutil"
+    "net/http"
+    "os"
+)
+
+func main() {
+    for _, url := range os.Args[1:] {
+        resp, err := http.Get(url)
+
+        if err != nil {
+            fmt.Fprintf(os.Stderr, "fetch: %v\n", err)
+            os.Exit(1)
+        }
+
+        b, err := ioutil.ReadAll(resp.Body)
+        resp.Body.Close()
+
+        if err != nil {
+            fmt.Fprintf(os.Stderr, "fetch: reading %s: %v\n", url, err)
+            os.Exit(1)
+        }
+
+        fmt.Printf("%s", b)
+    }
+}
+```
+
+`%v`	the value in a default format
+	    when printing `struct`s, the plus flag (%+v) adds field names
+
+### Streaming IO in Go
+[medium article](https://medium.com/learning-the-go-programming-language/streaming-io-in-go-d93507931185)
+
+
+[reference](https://golang.org/pkg/io/#Copy)
+
+In Go, input and output operations are achieved using primitives that model data as streams of bytes that can be *read* from or *written* to. To do this, the Go `io` package provides interfaces `io.Reader` and `io.Writer`, for data input and output operations respectively, as shown in the figure below:
+
+![Go Streams](Go-Streams.png)
+
+### `io.Copy()`
+Function `io.Copy()` makes it easy to stream data from a source reader to a target writer. It abstracts out the for-loop pattern and properly handle `io.EOF` and byte counts.
+
+``` go
+if _, err := io.Copy(dst, src); err != nil {
+    fmt.Println(err)
+}
+```
+
+### `HasPrefix`
+``` go
+func HasPrefix(s, prefix string) bool
+```
+
+`HasPrefix` tests whether the `string` s begins with prefix
+
+
+## Fetching URLs Concurrently
+
+The next program, `fetchall`, does the same fetch of a URL’s contents as the previous example, but it fetches many `URL`s, all concur rently, so that the process will take no longer than the longest fetch rather than the sum of all the fetch times. This version of `fetchall` discards the responses but reports the size and elapsed time for each one:
+
+
+``` go
+// Fetchall fetches URLs in parallel and reports their times and sizes.
+
+package main
+
+import (
+	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"time"
+)
+
+func main() {
+	start := time.Now()
+	ch := make(chan string)
+
+	for _, url := range os.Args[1:] {
+		go fetch(url, ch) // start a goroutine
+	}
+
+	for range os.Args[1:] {
+		fmt.Println(<-ch) // receive from channel ch
+	}
+
+	fmt.Printf("%.2fs elapsed\n", time.Since(start).Seconds())
+}
+
+func fetch(url string, ch chan<- string) {
+	start := time.Now()
+	resp, err := http.Get(url)
+
+	if err != nil {
+		ch <- fmt.Sprint(err) // send to channel ch
+		return
+	}
+
+	nbytes, err := io.Copy(ioutil.Discard, resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		ch <- fmt.Sprintf("While reading %s: %v", url, err)
+		return
+	}
+
+	secs := time.Since(start).Seconds()
+	ch <- fmt.Sprintf("%.2fs %7d %s", secs, nbytes, url)
+}
+```
