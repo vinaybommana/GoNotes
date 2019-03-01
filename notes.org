@@ -1,0 +1,536 @@
+* Chapter one
+  :PROPERTIES:
+  :CUSTOM_ID: chapter-one
+  :END:
+
+Go code is organised into packages, which are similar to libraries or
+modules in other languages. A package consists of one or more =.go=
+source files in a single directory that define what the packages does.
+
+Each source file begins with a =package= declaration, here
+=package main= that states which package the file belongs to, followed
+by a list of other packages that it imports, and then the declarations
+of the program that are stored in that file.
+
+the =fmt= package contains functions for printing formatted output and
+scanning input. =Println= is one of the basic output functions in =fmt=;
+it prints one or more values, seperated by spaces, with a newline
+character at the end so that the values appear as a single line of
+output.
+
+Package =main= is special. It defines a standalone executable program,
+not a library. Within package main the /function/ main is also special
+-- it's where execution of the program begins. Whatever =main= does is
+what the program does. ofcourse, =main= will normally call upon
+functions in other packages to do much of the work, such as function
+=fmt.Println=.
+
+** Command Line Arguments
+   :PROPERTIES:
+   :CUSTOM_ID: command-line-arguments
+   :END:
+
+The Variable =os.Args= is a /slice/ of strings. Slices are a fundamental
+notion in Go. A slice is a dynamically sized sequence =s= of array of
+elements where individual elements can be accessed by =s[i]= and a
+contiguous subsequence as =s[m:n]=
+
+The number of elements is given by =len(s)=.
+
+The first element of =os.Args=, =os.Args[0]=, is the name of the command
+itself; The other elements are arguments that were presented to the
+program when it started execution
+
+#+BEGIN_EXAMPLE
+    for _, arg := range os.Args[1: ] {
+        s += sep + arg
+        sep = " "
+    }
+    fmt.Println(s)
+#+END_EXAMPLE
+
+here range produces two values, =index= and =value= of the element at
+that index so arg handles =value= and =_= handles the index
+
+each time around the loop, the string =s= gets completely new contents.
+The =+== statement makes a new string by concatenating the old string, a
+space character, and the next argument, then assigns the new string to
+s. The old contents of =s= are no longer in use, so they will be
+garbage-collected in due course.
+
+If the amount of data involved is large, this could be costly. A simple
+and more efficient solution would be to use =Join= function from the
+=strings= package
+
+#+BEGIN_EXAMPLE
+
+    func main() {
+        fmt.Println(strings.Join(os.Args[1:], " "))
+    }
+#+END_EXAMPLE
+
+** Variables
+   :PROPERTIES:
+   :CUSTOM_ID: variables
+   :END:
+
+The version of strings above uses short variable declaration There are
+several other ways to declare a variable in go
+
+#+BEGIN_EXAMPLE
+    s := ""
+    var s = ""
+    var s string
+    var s string = ""
+#+END_EXAMPLE
+
+** Finding Duplicate Lines
+  :PROPERTIES:
+  :CUSTOM_ID: finding-duplicate-lines
+  :END:
+
+finding duplicate lines is partly inspired from =uniq= command, which
+looks for adjacent duplicate lines. The structures and packages used are
+models that can be easily adapted.
+
+A /map/ holds a set of key / value pairs and provides constant - time
+operations to store, retrieve, or test for an item in the set.
+
+#+BEGIN_EXAMPLE
+    a map is like a dictionary in python ?
+#+END_EXAMPLE
+
+The key may be of any type whose values can be compared with ====,
+strings being the most common example; The value may be of any type at
+all. In the example, the keys are strings and the values are =ints=. The
+built-in function =make= creates a new empty map;
+
+The program uses a short variable declaration to create a new variable
+=input= that refers to a =bufio.Scanner=
+
+#+BEGIN_EXAMPLE
+    input := bufio.NewScanner(os.Stdin)
+#+END_EXAMPLE
+
+The scanner reads from the program's standard input. Each call to
+=input.Scan()= reads the next line and removes the newline character
+from the end; the result can be retrieved by calling =input.Text()= The
+=Scan= function returns =true= if there is a line and =false= when there
+is no more input.
+
+*** Difference between quoted string and a string in go
+    :PROPERTIES:
+    :CUSTOM_ID: difference-between-quoted-string-and-a-string-in-go
+    :END:
+
+In quotes "" you need to esacpe new lines, tabs and other characters
+that do not need to be escaped in backticks ``. If you put a line break
+in a backtick string, it is interpreted as a ='\n'=
+
+** String Literals
+   :PROPERTIES:
+   :CUSTOM_ID: string-literals
+   :END:
+
+A string literal represents a =string constant= obtained from
+concatenating a sequence of characters. There are two forms: 1. raw
+string literals 2. interpreted string literals
+
+Raw string literals are character sequences between back quotes, as in
+`=foo=`. Within the quotes, any character may appear except back quote.
+
+The value of a raw string literal is the string composed of the
+uninterpreted (implicitly UTF-8 encoded.) characters between the quotes;
+in particular, backslashes have no special meaning and the string may
+contain new lines. Carriage return characters (='\r'=) inside raw string
+literals are discarded from the raw string value.
+
+Interpreted string literals are character sequences between double
+quotes, as in ="bar"=. Within the quotes, any character may appear
+except newline and unescaped double quote. The text between the quotes
+forms the value of the literal, with backslash escapes interpreted as
+they are in =rune literals=.
+
+#+BEGIN_EXAMPLE
+    string_lit             = raw_string_lit | interpreted_string_lit .
+    raw_string_lit         = "`" { unicode_char | newline } "`" .
+    interpreted_string_lit = `"` { unicode_value | byte_value } `"` .
+#+END_EXAMPLE
+
+#+BEGIN_EXAMPLE
+    `abc`                // same as "abc"
+    `\n
+    \n`                  // same as "\\n\n\\n"
+    "\n"
+    "\""                 // same as `"`
+    "Hello, world!\n"
+    "日本語"
+    "\u65e5本\U00008a9e"
+    "\xff\u00FF"
+    "\uD800"             // illegal: surrogate half
+    "\U00110000"         // illegal: invalid Unicode code point
+#+END_EXAMPLE
+
+** Maps in Go
+   :PROPERTIES:
+   :CUSTOM_ID: maps-in-go
+   :END:
+
+Go provides a built-in map type that implements as hash table.
+
+*** Declaration and initialization
+    :PROPERTIES:
+    :CUSTOM_ID: declaration-and-initialization
+    :END:
+
+A Go map type looks like this:
+
+#+BEGIN_EXAMPLE
+    map[KeyType]ValueType
+#+END_EXAMPLE
+
+where =KeyType= may be anytype that is /comparable/ and =ValueType= may
+be any type at all, including another map.
+
+#+BEGIN_EXAMPLE
+    var m map[string]int
+#+END_EXAMPLE
+
+Map types are reference types, like pointers or slices, and so the
+values of =m= above is nil; it doesn't point to an initialized map. A
+=nil= map behaves like an empty map when reading, but attempts to write
+to =nil= map will cause a runtime panic; don't do that. To initialize a
+map, use the built in =make= function:
+
+#+BEGIN_EXAMPLE
+    m = make(map[string]int)
+#+END_EXAMPLE
+
+The =make= function allocates and initializes a hash map data structure
+and returns a map value that points to it. The specifics of that data
+structure are an implementation detail of the runtime and are not
+specified by the language itself.
+
+#+BEGIN_EXAMPLE
+    for key, value := range m {
+        fmt.Println("Key:", key, "Value:", value)
+    }
+#+END_EXAMPLE
+
+*** Exploiting zero values
+    :PROPERTIES:
+    :CUSTOM_ID: exploiting-zero-values
+    :END:
+
+It can be convenient that a map retrieval yields a zero value when the
+key is not present.
+
+For instance, a map of boolean values can be used as a set-like data
+structure (recall that the zero value for the boolean type is =false=).
+This example traverses a linked list of =Nodes= and prints their values.
+It uses a map of =Node= pointers to detect cycles in the list.
+
+#+BEGIN_EXAMPLE
+    type Node struct {
+        Next *Node
+        Value interface{} // *Interfaces* are named collections of method signatures.
+    }
+    var first *Node
+
+    visited := make(map[*Node]bool)
+    for n := first; n != nil; n = n.Next {
+        if visited[n] {
+            fmt.Println("cycle detected")
+            break
+        }
+        visited[n] = true
+        fmt.Println(n.Value)
+    }
+#+END_EXAMPLE
+
+** Interfaces
+   :PROPERTIES:
+   :CUSTOM_ID: interfaces
+   :END:
+
+/Interfaces/ are named collections of method signatures.
+
+#+BEGIN_EXAMPLE
+    type geometry interface {
+        area() float64
+        perim() float64
+    }
+#+END_EXAMPLE
+
+[[http://jordanorelli.com/post/32665860244/how-to-use-interfaces-in-go][jordan
+orelli's blogpost]]
+
+An interface is two things: it is a set of methods, but it is also a
+type.
+
+Typically, we're introduced to interfaces with some contrived example.
+Let's go with the contrived example of writing some application where
+you're defining =Animal= datatypes, because that's a totally realistic
+situation that happens all the time.
+
+The =Animal= type will be an interface, and we'll define an =Animal= as
+being /anything that can speak/. This is a core concept in Go's type
+system; instead of designing our abstractions in terms of what kind of
+data our types can hold, we design our abstractions in terms of what
+actions our types can execute.
+
+we start by defining our =Animal= interface:
+
+#+BEGIN_EXAMPLE
+    type Animal interface {
+        Speak() string
+    }
+#+END_EXAMPLE
+
+pretty simple: we define an =Animal= as being any type that has a method
+named =Speak=. The Speak method takes no arguments and returns a string.
+Any type that defines this method is said to satisfy the =Animal=
+interface. There is no =implements= keyword in Go; whether or not a type
+satisfies an interface is determined automatically.
+
+#+BEGIN_EXAMPLE
+    type Dog struct {
+    }
+
+    func (d Dog) Speak() string {
+        return "Woof!"
+    }
+
+    type Cat struct {
+    }
+
+    func (c Cat) Speak() string {
+        return "Meow!"
+    }
+
+    type Llama struct {
+    }
+
+    func (l Llama) Speak() string {
+        return "?????"
+    }
+
+    type JavaProgrammer struct {
+    }
+
+    func (j JavaProgrammer) Speak() string {
+        return "Design patterns!"
+    }
+#+END_EXAMPLE
+
+We now have four different types of animals: A dog, a cat, a llama, and
+a Java programmer. In our main() function, we can create a slice of
+Animals, and put one of each type into that slice, and see what each
+animal says. Let's do that now:
+
+#+BEGIN_EXAMPLE
+    func main() {
+        animals := []Animal{Dog{}, Cat{}, Llama{}, JavaProgrammer{}}
+        for _, animal := range animals {
+            fmt.Println(animal.Speak())
+        }
+    }
+#+END_EXAMPLE
+
+*** The =interface{}= type
+    :PROPERTIES:
+    :CUSTOM_ID: the-interface-type
+    :END:
+
+The =interface{}= type, the empty interface, is the source of much
+confusion. The =interface{}= type is the interface that has no methods.
+Since there is no implements keyword, all types implement at least zero
+methods, and satisfying an interface is done automatically, all types
+satisfy the empty interface. That means that if you write a function
+that takes an interface{} value as a parameter, you can supply that
+function with any value. So, this function:
+
+#+BEGIN_EXAMPLE
+    func DoSomething(v interface{}) {
+       // ...
+    }
+#+END_EXAMPLE
+
+will accept any parameter whatsoever.
+
+Here's where it gets confusing: inside of the =DoSomething= function,
+what is v's type? Beginner gophers are led to believe that "v is of any
+type", but that is wrong. v is not of any type; it is of =interface{}=
+type. Wait, what? When passing a value into the DoSomething function,
+the Go runtime will perform a type conversion (if necessary), and
+convert the value to an interface{} value. All values have exactly one
+type at runtime, and v's one static type is =interface{}=.
+
+[[https://research.swtch.com/interfaces][Russ Cox Blog]]
+
+** Fetching URLs
+   :PROPERTIES:
+   :CUSTOM_ID: fetching-urls
+   :END:
+
+Go provides a collection of packages, grouped under =net=, that make it
+easy to send and receive information through internet, make low-level
+network connections, and set up servers, for which =Go's= concurrency
+features are particularly useful.
+
+To illustrate the minimum necessary to retrie ve information over
+=HTTP=, here's a simple program called =fetch= that fetches the content
+of each specified URL and prints it as uninterpreted text; it's inspired
+by the invaluable utility =curl=. Obviously one would usually do more
+with such data, but this shows the basic idea. We will use this program
+frequently in the book.
+
+#+BEGIN_EXAMPLE
+    package main
+
+    import (
+        "fmt"
+        "io/ioutil"
+        "net/http"
+        "os"
+    )
+
+    func main() {
+        for _, url := range os.Args[1:] {
+            resp, err := http.Get(url)
+
+            if err != nil {
+                fmt.Fprintf(os.Stderr, "fetch: %v\n", err)
+                os.Exit(1)
+            }
+
+            b, err := ioutil.ReadAll(resp.Body)
+            resp.Body.Close()
+
+            if err != nil {
+                fmt.Fprintf(os.Stderr, "fetch: reading %s: %v\n", url, err)
+                os.Exit(1)
+            }
+
+            fmt.Printf("%s", b)
+        }
+    }
+#+END_EXAMPLE
+
+=%v= the value in a default format when printing =struct=s, the plus
+flag (%+v) adds field names
+
+*** Streaming IO in Go
+    :PROPERTIES:
+    :CUSTOM_ID: streaming-io-in-go
+    :END:
+
+[[https://medium.com/learning-the-go-programming-language/streaming-io-in-go-d93507931185][medium
+article]]
+
+[[https://golang.org/pkg/io/#Copy][reference]]
+
+In Go, input and output operations are achieved using primitives that
+model data as streams of bytes that can be /read/ from or /written/ to.
+To do this, the Go =io= package provides interfaces =io.Reader= and
+=io.Writer=, for data input and output operations respectively, as shown
+in the figure below:
+
+#+CAPTION: Go Streams
+[[file:Go-Streams.png]]
+
+*** =io.Copy()=
+    :PROPERTIES:
+    :CUSTOM_ID: io.copy
+    :END:
+
+Function =io.Copy()= makes it easy to stream data from a source reader
+to a target writer. It abstracts out the for-loop pattern and properly
+handle =io.EOF= and byte counts.
+
+#+BEGIN_EXAMPLE
+    if _, err := io.Copy(dst, src); err != nil {
+        fmt.Println(err)
+    }
+#+END_EXAMPLE
+
+*** =HasPrefix=
+    :PROPERTIES:
+    :CUSTOM_ID: hasprefix
+    :END:
+
+#+BEGIN_EXAMPLE
+    func HasPrefix(s, prefix string) bool
+#+END_EXAMPLE
+
+=HasPrefix= tests whether the =string= s begins with prefix
+
+** Fetching URLs Concurrently
+   :PROPERTIES:
+   :CUSTOM_ID: fetching-urls-concurrently
+   :END:
+
+The next program, =fetchall=, does the same fetch of a URL's contents as
+the previous example, but it fetches many =URL=s, all concur rently, so
+that the process will take no longer than the longest fetch rather than
+the sum of all the fetch times. This version of =fetchall= discards the
+responses but reports the size and elapsed time for each one:
+
+#+BEGIN_EXAMPLE
+    // Fetchall fetches URLs in parallel and reports their times and sizes.
+
+    package main
+
+    import (
+        "fmt"
+        "io"
+        "io/ioutil"
+        "net/http"
+        "os"
+        "time"
+    )
+
+    func main() {
+        start := time.Now()
+        ch := make(chan string)
+
+        for _, url := range os.Args[1:] {
+            go fetch(url, ch) // start a goroutine
+        }
+
+        for range os.Args[1:] {
+            fmt.Println(<-ch) // receive from channel ch
+        }
+
+        fmt.Printf("%.2fs elapsed\n", time.Since(start).Seconds())
+    }
+
+    func fetch(url string, ch chan<- string) {
+        start := time.Now()
+        resp, err := http.Get(url)
+
+        if err != nil {
+            ch <- fmt.Sprint(err) // send to channel ch
+            return
+        }
+
+        nbytes, err := io.Copy(ioutil.Discard, resp.Body)
+        resp.Body.Close()
+        if err != nil {
+            ch <- fmt.Sprintf("While reading %s: %v", url, err)
+            return
+        }
+
+        secs := time.Since(start).Seconds()
+        ch <- fmt.Sprintf("%.2fs %7d %s", secs, nbytes, url)
+    }
+#+END_EXAMPLE
+
+[[http://talks.golang.org/2012/concurrency.slide#1][Go routines]]
+
+** Strings in Go
+   :PROPERTIES:
+   :CUSTOM_ID: strings-in-go
+   :END:
+
+In Go, a string is in effect a read-only slice of bytes.
