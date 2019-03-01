@@ -440,3 +440,30 @@ func fetch(url string, ch chan<- string) {
 
 ## Strings in Go
 In Go, a string is in effect a read-only slice of bytes.
+
+
+## A Web Server
+Go’s libraries makes it easy to write a web ser ver that responds to client requests like those
+made by *fetch*. In this section, we’ll show a minimal ser ver that returns the pat h component of the URL used to access the ser ver. That is, if the request is for `http://localhost:8000/hello`, the response will be `URL.Path = "/hello"`
+
+``` go
+// Server1 is a minimal "echo" server
+
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+)
+
+func main() {
+	http.HandleFunc("/", handler) // each request calls handler.
+	log.Fatal(http.ListenAndServe("localhost:8000", nil))
+}
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "URL.Path = %q\n", r.URL.Path)
+}
+
+```
